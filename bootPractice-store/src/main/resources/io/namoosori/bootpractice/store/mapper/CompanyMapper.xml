@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="io.namoosori.bootpractice.store.mapper.CompanyMapper">
+
+	<resultMap id="companyWithMembersMap"
+		type="io.namoosori.bootpractice.entity.Company">
+		<id property="name" column="companyName" />
+		<association property="payment"
+			javaType="io.namoosori.bootpractice.entity.vo.Payment">
+			<result property="averagePayment" column="averagePayment" />
+		</association>
+		<collection property="developers"
+			ofType="io.namoosori.bootpractice.entity.Developer">
+			<id property="name" column="devName" />
+			<id property="yearOfCareer" column="devYearOfCareer" />
+			<id property="skills" column="devSkills"
+				typeHandler="io.namoosori.bootpractice.store.handler.SkillsTypeHandler" />
+		</collection>
+	</resultMap>
+	
+	<insert id="create" parameterType="io.namoosori.bootpractice.entity.Company">
+		insert into company
+		(name)
+		values (
+		#{name}
+		)
+	</insert>
+
+	<select id="retrieve" 
+	parameterType="string"
+	resultMap="companyWithMembersMap">
+		select c.name as 'companyName', p.averagePayment as 'averagePayment', d.name as devName,
+		p.yearOfCarrer as 'devYearOfCareer', p.skills as 'devSkills'
+		from company c
+		Left outer join developer d
+		on c.name = d.companyName
+		Left outer join payment p
+		on c.name = p.companyName
+		where c.name = d.companyname and c.name = p.companyName;
+	</select>
+	
+	<select id="retrieveNameIn" 
+	parameterType="java.util.List"
+	resultMap="companyWithMembersMap">
+		select c.name as 'companyName', p.averagePayment as 'averagePayment', d.name as devName,
+		p.yearOfCarrer as 'devYearOfCareer', p.skills as 'devSkills'
+		from company c
+		Left outer join developer d
+		on c.name = d.companyName
+		Left outer join payment p
+		on c.name = p.companyName
+		where name In
+		<foreach item="name" index="index" collection="names" open="("
+			separator="," close=")">
+			#{names.name}
+		</foreach>
+		
+	</select>
+
+	<update id="update" parameterType="io.namoosori.bootpractice.entity.Company">
+		
+	</update>
+
+	<delete id="delete" parameterType="string">
+		delete from company where name=#{name}
+	</delete>
+
+	<!-- <select id="retrieveCompanyWithMembers" parameterType="String"
+		resultMap="companyWithMembersMap">
+		select c.name as 'companyName',
+		p.averagePayment as 'averagePayment',
+		d.name as 'devName',
+		d.yearOfCareer as 'devYearOfCareer',
+		d.skills as 'devSkills'
+		from company c, developer d, payment p
+		where d.companyname = c.name and c.name = p.companyName
+	</select>
+
+	<select id="retrieveDevsNameIn" parameterType="java.util.List">
+		select *
+		from developer
+		where name In
+		<foreach item="name" index="index" collection="names" open="("
+			separator="," close=")">
+			#{names.name}
+		</foreach>
+	</select> -->
+
+</mapper>
